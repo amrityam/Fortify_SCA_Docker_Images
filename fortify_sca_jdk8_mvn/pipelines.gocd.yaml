@@ -54,5 +54,5 @@ pipelines:
                 - exec:
                     arguments:
                       - -c
-                      - docker run --rm -v $PWD/source_code:/source_code -e "blackduck_hub_project_name=WebGoat" -e "blackduck_hub_project_version=1.0" -e "sonar_fortify_ssc_appversion=WebGoat:1.0" -e "sonar_projectKey=WebGoat" https://hub.docker.com/r/amrityam/fortify-sca-images/fortify_sca_docker_image_jdk8_mvn
+                      - docker run --rm -v $PWD/source_code:/source_code -e "prod_name=WebGoat" -e "blackduck_hub_project_name=WebGoat" -e "blackduck_hub_project_version=1.0" -e "sonar_fortify_ssc_appversion=WebGoat:1.0" -e "sonar_projectKey=WebGoat" https://hub.docker.com/r/amrityam/fortify-sca-images/fortify_sca_docker_image_jdk8_mvn
                     command: bash
