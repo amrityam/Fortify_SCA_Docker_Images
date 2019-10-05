@@ -1,0 +1,58 @@
+pipelines:
+  build-publish-jdk8-mvn-fortify-sca-image:
+    group: java-mvn-build-group
+    materials:
+      mygit:
+        branch: master
+        git: https://github.com/amrityam/Fortify_SCA_Docker_Images.git
+        whitelist:
+          - fortify_sca_docker_image_jdk8_mvn/**/*.*
+    stages:
+       - publish-image:
+          clean_workspace: true
+          jobs:
+            run:
+              tasks:
+                - exec:
+                   command: bash
+                   arguments:
+                    - -c
+                    - cp -r /var/lib/go-agent/pipelines/fortify-19.1.0 ./Fortify/
+                - exec:
+                   command: bash
+                   arguments:
+                    - -c
+                    - docker build --no-cache --rm -t https://hub.docker.com/r/amrityam/fortify-sca-images/fortify_sca_docker_image_jdk8_mvn --file=fortify_sca_docker_image_jdk8_mvn/Dockerfile .
+                - exec:
+                   command: bash
+                   arguments:
+                    - -c
+                    - docker push https://hub.docker.com/r/amrityam/fortify-sca-images/fortify_sca_docker_image_jdk8_mvn
+                - exec:
+                   command: bash
+                   arguments:
+                    - -c
+                    - docker rmi -f https://hub.docker.com/r/amrityam/fortify-sca-images/fortify_sca_docker_image_jdk8_mvn
+#This pipeline below is to be used by any project on jdk8 and maven, Just need to change the git repo and arguments in docker run command below
+#Rest everything is blackbox for the user.
+  WebGoat-code-fortify-scanning:
+    group: java-mvn-build-group
+    materials:
+      mygit:
+        branch: master
+        git: https://github.com/WebGoat/WebGoat.git
+        destination: source_code
+      dev:
+        pipeline: build-publish-jdk8-mvn-fortify-sca-image
+        stage: publish-image
+    stages:
+      - staticCode-analysis:
+          clean_workspace: true
+          jobs:
+            run:
+              tasks:
+                - exec:
+                    arguments:
+                      - -c
+                      - docker run --rm -v $PWD/source_code:/source_code -e "blackduck_hub_project_name=WebGoat" -e "blackduck_hub_project_version=1.0" -e "sonar_fortify_ssc_appversion=WebGoat:1.0" -e "sonar_projectKey=WebGoat" https://hub.docker.com/r/amrityam/fortify-sca-images/fortify_sca_docker_image_jdk8_mvn
+                    command: bash
